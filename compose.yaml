@@ -1,11 +1,50 @@
+version: '3.8'
+
 services:
   api:
-    build:
+    build: 
       context: .
       target: builder
     container_name: fastapi-application
     environment:
-      PORT: 8000
+      - PORT=8000
+      - DB_HOST=mariadb
+      - DB_USER=myuser
+      - DB_PASSWORD=mypassword
+      - DB_NAME=mydatabase
     ports:
       - '8000:8000'
     restart: "no"
+    depends_on:
+      - mariadb
+
+  mariadb:
+    image: mariadb:latest
+    
+    container_name: mariadb-database
+    environment:
+      - MYSQL_ROOT_PASSWORD=rootpassword
+      - MYSQL_DATABASE=mydatabase
+      - MYSQL_USER=myuser
+      - MYSQL_PASSWORD=mypassword
+    ports:
+      - '3306:3306'
+    volumes:
+      - mariadb-data:/var/lib/mysql
+    restart: always
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpmyadmin-interface
+    environment:
+      - PMA_HOST=mariadb
+      - PMA_PORT=3306
+      - MYSQL_ROOT_PASSWORD=rootpassword
+    ports:
+      - '8280:80'
+    depends_on:
+      - mariadb
+    restart: always
+
+volumes:
+  mariadb-data:
